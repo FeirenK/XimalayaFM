@@ -81,9 +81,9 @@ class XiMa(object):
             pass
 
     @staticmethod
-    def make_dir(xm_fm_id):
+    def make_dir(fm_title_id):
         # 保存路径，请自行修改，这里是以有声书ID作为文件夹的路径
-        fm_path = 'F:\\{}\\'.format(xm_fm_id)
+        fm_path = 'd:\\喜马拉雅\\{}\\'.format(fm_title_id)
         f = os.path.exists(fm_path)
         if not f:
             os.makedirs(fm_path)
@@ -98,9 +98,10 @@ class XiMa(object):
         print(fm_url)
         r_fm_url = self.s.get(fm_url, headers=self.header)
         fm_title = re.findall('<h1 class="title _leU">(.*?)</h1>', r_fm_url.text, re.S)[0]
-        print('书名：' + fm_title)
+        fm_title_id = fm_title + "_" + xm_fm_id
+        print('书名_id：' + fm_title_id)
         # 新建有声书ID的文件夹
-        fm_path = self.make_dir(xm_fm_id)
+        fm_path = self.make_dir(fm_title_id)
         # 取最大页数
         max_page = re.findall(r'<input type="number" placeholder="请输入页码" step="1" min="1" '
                               r'max="(\d+)" class="control-input _bfuk" value=""/>', r_fm_url.text, re.S)
@@ -112,7 +113,7 @@ class XiMa(object):
                 # print(json.loads(r.text))
                 r_json = json.loads(r.text)
                 for audio in r_json['data']['tracksAudioPlay']:
-                    audio_title = str(audio['trackName']).replace(' ', '')
+                    audio_title = str(audio['trackName']).replace('/', '').replace(' ', '')
                     audio_src = audio['src']
                     self.get_detail(audio_title, audio_src, fm_path)
                 # 每爬取1页，30个音频，休眠3秒
@@ -130,21 +131,23 @@ class XiMa(object):
         # 取最大页数
         max_tracks = r_json['data']['tracksInfo']['trackTotalCount']
         max_page = math.ceil(int(r_json['data']['tracksInfo']['trackTotalCount'])/30)
-        print('书名：' + fm_title)
+        fm_title_id = fm_title + "_" + xm_fm_id
+        print('书名_id：' + fm_title_id)
         # 新建有声书ID的文件夹
-        fm_path = self.make_dir(xm_fm_id)
+        fm_path = self.make_dir(fm_title_id)
+
         if max_tracks:
             r_album_alltracks = self.s.get(self.pay_api_allinfo.format(xm_fm_id, max_tracks), headers=self.header)
             raa_json = json.loads(r_album_alltracks.text)
             tracks = raa_json['data']['tracks']['list']
             for track in tracks:
                 audio_id = track['trackId']
-                audio_title = str(track['title']).replace(' ', '')
+                audio_title = str(track['title']).replace('/', '').replace(' ', '')
                 audio_src = self.pay_api_single.format(audio_id)
                 print(audio_title, audio_src)
-                # self.get_detail(audio_title, audio_src, fm_path)
+                self.get_detail(audio_title, audio_src, fm_path)
                 # 每爬取1页，30个音频，休眠1~3秒
-                time.sleep(random.randint(1, 3))
+            time.sleep(random.randint(1, 3))
         else:
             print(os.error)
 
