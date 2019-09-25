@@ -96,7 +96,7 @@ class XiMa(object):
                 # print(json.loads(r.text))
                 r_json = json.loads(r.text)
                 for audio in r_json['data']['tracksAudioPlay']:
-                    audio_title = str(audio['trackName']).replace(' ', '')
+                    audio_title = str(audio['trackName']).replace('/', '').replace(' ', '')
                     audio_src = audio['src']
                     self.get_detail(audio_title, audio_src, fm_path)
                 # 每爬取1页，30个音频，休眠3秒
