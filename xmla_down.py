@@ -1,6 +1,12 @@
 #!/usr/bin/python
 # -*- coding:utf-8 -*-
-# author:joel 19-9-22
+# feiren 2019-09-25
+
+'''
+用于下载喜马拉雅音频文件,vip文件可以下载但是只能听前3分钟后面内容加密了
+注意请修改 make_dir() 中的下载路径
+
+'''
 
 import hashlib
 import json
@@ -10,10 +16,12 @@ import re
 import time
 import random
 import requests
-
-"""
-注意请修改 make_dir() 中的下载路径
-"""
+'''
+python2编码问题 unicode-->str
+import sys
+reload(sys)  #http://www.360doc.com/content/15/0105/15/9934052_438371998.shtml
+sys.setdefaultencoding('utf-8')
+'''
 
 
 class XiMa(object):
@@ -64,8 +72,11 @@ class XiMa(object):
                       u'3、下载已付费有声书\n'
                       u'4、返回\n')
         if c_num == '1':
-            xm_id = input(u'请输入要获取的喜马拉雅节目的ID：')
-            xima.get_fm(xm_id)
+            xm_ids = input(u'请输入要获取的喜马拉雅节目的ID：')
+            xm_id_list = xm_ids.split(',')
+            for xm_id in xm_id_list:
+                print("down: " + xm_id)
+                xima.get_fm(xm_id)
             self.index_choose()
         elif c_num == '2':
             xm_id = input(u'请输入要获取的音源：')
@@ -113,7 +124,7 @@ class XiMa(object):
                 # print(json.loads(r.text))
                 r_json = json.loads(r.text)
                 for audio in r_json['data']['tracksAudioPlay']:
-                    audio_title = str(audio['trackName']).replace('/', '').replace(' ', '')
+                    audio_title = str(audio['trackName']).replace('/', '').replace(' ', '').replace('?', '').replace('|', '').replace('*', '').replace('<', '').replace('>', '').replace(',', '').replace('"', '').replace(':', '')
                     audio_src = audio['src']
                     self.get_detail(audio_title, audio_src, fm_path)
                 # 每爬取1页，30个音频，休眠3秒
@@ -142,7 +153,7 @@ class XiMa(object):
             tracks = raa_json['data']['tracks']['list']
             for track in tracks:
                 audio_id = track['trackId']
-                audio_title = str(track['title']).replace('/', '').replace(' ', '')
+                audio_title = str(track['title']).replace('/', '').replace(' ', '').replace('?', '').replace('|', '').replace('*', '').replace('<', '').replace('>', '').replace(',', '').replace('"', '').replace(':', '')
                 audio_src = self.pay_api_single.format(audio_id)
                 print(audio_title, audio_src)
                 self.get_detail(audio_title, audio_src, fm_path)
@@ -153,13 +164,13 @@ class XiMa(object):
 
     def get_detail(self, title, src, path):
         r_audio_src = self.s.get(src, headers=self.header)
-        m4a_path = path + title + '.m4a'
+        m4a_path = path + title + '.mp3'
         if not os.path.exists(m4a_path):
             with open(m4a_path, 'wb') as f:
                 f.write(r_audio_src.content)
                 print(title + '保存完毕...')
         else:
-            print(title + 'm4a已存在')
+            print(title + 'mp3已存在')
 
 
 if __name__ == '__main__':
